@@ -1,4 +1,13 @@
 const authRoute = require("./authRoute");
+const categoryRoute = require("./categoryRoute");
+const productRoute = require("./productRoute");
+const cartRoute = require("./cartRoute");
+const orderRoute = require("./orderRoute");
+const reviewRoute = require("./reviewRoute");
+const favoritesRoute = require("./favoritesRoute");
+const promocodeRoute = require("./promocodeRoute");
+
+
 
 
 const mountRoutes = (app) => {
@@ -28,6 +37,13 @@ const mountRoutes = (app) => {
 // Mounting various routes
 //=============================
     app.use("/auth", authRoute);
+    app.use("/categories", categoryRoute);
+    app.use("/products", productRoute);
+    app.use("/cart", cartRoute);
+    app.use("/orders", orderRoute);
+    app.use("/reviews", reviewRoute);
+    app.use("/favorites", favoritesRoute);
+    app.use("/promocodes", promocodeRoute);
 
 
 //=============================
