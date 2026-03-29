@@ -13,7 +13,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
 
 exports.getProduct = HandlerFactory.getOne(Product);
 
-exports.getCategories = HandlerFactory.getAll(Product);
+exports.getProducts = HandlerFactory.getAll(Product);
 
 exports.updateProduct = HandlerFactory.updateOne(Product);
 

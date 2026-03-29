@@ -16,7 +16,7 @@ const {
 
 const { protect, allowedTo } = require("../middleware/authMiddleware");
 
-const {uploadImages, attachUploadedLinks} = require("../middleware/uploadFileMiddleware");
+const {uploadImages, attachUploadedLinks} = require("../middleware/uploadImageMiddleware");
 const router = express.Router();
 
 router.use(protect , allowedTo("admin"));

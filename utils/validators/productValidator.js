@@ -70,13 +70,11 @@ exports.updateProductValidator = [
     
     check("name")
         .optional()
-        .withMessage("name is required")
         .isLength({ min: 2 })
         .withMessage("name must be at least 2 characters"),
 
     check("description")
         .optional()
-        .withMessage("description is required")
         .isLength({ min: 2 })
         .withMessage("description must be at least 2 characters")
         .isLength({ max: 200})
@@ -84,13 +82,11 @@ exports.updateProductValidator = [
     
     check("price")  
         .optional()
-        .withMessage("price required")
         .isFloat({ gt: 0 })
         .withMessage("price must be a positive number"),
 
     check("category")
         .optional()
-        .withMessage("id required")
         .isMongoId()
         .withMessage("Invalid id format"),
 

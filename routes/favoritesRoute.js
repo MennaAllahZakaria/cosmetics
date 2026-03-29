@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.use(protect);
 
-router.post("/toggle", toggleFavoriteValidator, toggleFavorite);
+router.post("/toggle/:productId", toggleFavoriteValidator, toggleFavorite);
 router.get("/my-favorites", getMyFavorites);
 
 module.exports = router;

@@ -4,7 +4,7 @@ const Favorite = require("../models/favoritesModel");
 
 exports.toggleFavorite = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { productId } = req.body;
+  const { productId } = req.params;
 
   const existing = await Favorite.findOne({ user: userId, product: productId });
 
@@ -26,7 +26,7 @@ exports.getMyFavorites = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const favorites = await Favorite.aggregate([
-    { $match: { user: userId } },
+    { $match: { user: new mongoose.Types.ObjectId(userId) } },
 
     {
       $lookup: {

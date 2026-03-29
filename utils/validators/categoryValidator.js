@@ -40,13 +40,11 @@ exports.updateCategoryValidator = [
     
     check("name")
         .optional()
-        .withMessage("name is required")
         .isLength({ min: 2 })
         .withMessage("name must be at least 2 characters"),
 
     check("description")
         .optional()
-        .withMessage("description is required")
         .isLength({ min: 2 })
         .withMessage("description must be at least 2 characters")
         .isLength({ max: 200})

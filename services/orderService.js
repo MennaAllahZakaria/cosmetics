@@ -38,6 +38,8 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
 
     orderItems.push({
       product: product._id,
+      name: product.name,
+      price: product.price,
       quantity: item.quantity,
     });
   }
@@ -135,7 +137,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
 });
 
 exports.cancelOrder = asyncHandler(async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findById(req.params.id).populate("items.product name price stock");
 
     if (!order) {
     return next(new ApiError("Order not found", 404));
@@ -147,6 +149,12 @@ exports.cancelOrder = asyncHandler(async (req, res, next) => {
 
     order.status = "cancelled";
     await order.save();
+    // restore stock
+    for (const item of order.items) {
+    await Product.findByIdAndUpdate(item.product._id, {
+      $inc: { stock: item.quantity },
+    });
+  }
 
     res.status(200).json({ data: order });
 });

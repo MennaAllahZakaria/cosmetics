@@ -36,14 +36,14 @@ const mountRoutes = (app) => {
 //=============================
 // Mounting various routes
 //=============================
-    app.use("/auth", authRoute);
-    app.use("/categories", categoryRoute);
-    app.use("/products", productRoute);
-    app.use("/cart", cartRoute);
-    app.use("/orders", orderRoute);
-    app.use("/reviews", reviewRoute);
-    app.use("/favorites", favoritesRoute);
-    app.use("/promocodes", promocodeRoute);
+    app.use("/api/v1/auth", authRoute);
+    app.use("/api/v1/categories", categoryRoute);
+    app.use("/api/v1/products", productRoute);
+    app.use("/api/v1/cart", cartRoute);
+    app.use("/api/v1/orders", orderRoute);
+    app.use("/api/v1/reviews", reviewRoute);
+    app.use("/api/v1/favorites", favoritesRoute);
+    app.use("/api/v1/promocodes", promocodeRoute);
 
 
 //=============================
