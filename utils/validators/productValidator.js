@@ -36,7 +36,10 @@ exports.createProductValidator = [
         .withMessage("stock must be a positive number"),
     
     check("skinType")
-        .optional()
+        .notEmpty()
+        .withMessage("skinType required")
+        .isLength({ min: 1 })
+        .withMessage("At least one skin type required")
         .isIn(["oily", "dry", "combination", "sensitive", "normal"])
         .withMessage("Invalid skinType"),
 
@@ -91,8 +94,7 @@ exports.updateProductValidator = [
         .withMessage("Invalid id format"),
 
     check("stock")  
-        .notEmpty()
-        .withMessage("stock required")
+        .optional()
         .isFloat({ gt: 0 })
         .withMessage("stock must be a positive number"),
     
@@ -102,6 +104,7 @@ exports.updateProductValidator = [
         .withMessage("Invalid skinType"),
 
     check("ratingsAverage")
+         .optional()
         .isLength({ min: 0 })
         .withMessage("Rating must be above 0")
         .isLength({ max: 5})

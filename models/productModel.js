@@ -31,12 +31,11 @@ const productSchema = new mongoose.Schema({
         default: true
     },
 
-    skinType: [
-            {
-            type: String,
-            enum: ["oily", "dry", "combination", "sensitive", "normal"],
-        }
-    ],
+    skinType: {
+        type: [String],
+        enum: ["oily", "dry", "combination", "sensitive", "normal"],
+        minlength: [1, "At least one skin type required"],
+    },
     images: [String], // Array of image URLs
     ratingsAverage: {
         type: Number,

@@ -5,6 +5,7 @@ const {
     getProduct,
     getProducts,
     updateProduct,
+    addImageToProduct,
     deleteProduct
 } = require("../services/productService");
 
@@ -19,16 +20,18 @@ const { protect, allowedTo } = require("../middleware/authMiddleware");
 const {uploadImages, attachUploadedLinks} = require("../middleware/uploadImageMiddleware");
 const router = express.Router();
 
-router.use(protect , allowedTo("admin"));
+router.use(protect );
 
-router.post("/", uploadImages , attachUploadedLinks ,createProductValidator, createProduct);
+router.post("/", allowedTo("admin"), uploadImages , attachUploadedLinks ,createProductValidator, createProduct);
 
 router.get ("/", getProducts);
 
 router.get ("/:id" ,idValidator, getProduct);
 
-router.put("/:id" ,updateProductValidator , updateProduct);
+router.put("/:id" , allowedTo("admin") , uploadImages , attachUploadedLinks,updateProductValidator , updateProduct);
 
-router.delete("/:id" ,idValidator , deleteProduct);
+router.patch("/:id/images" ,allowedTo("admin"), uploadImages , attachUploadedLinks, idValidator, addImageToProduct);
+
+router.delete("/:id" ,allowedTo("admin"), idValidator , deleteProduct);
 
 module.exports = router;
