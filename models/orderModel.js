@@ -13,6 +13,12 @@ const orderSchema = new mongoose.Schema({
         floor :{
             type:Number,
         },
+        building :{
+            type:String,
+        },
+        apartment :{
+            type:String,
+        },
         city :{
             type:String,
         },

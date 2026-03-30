@@ -158,3 +158,62 @@ exports.cancelOrder = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({ data: order });
 });
+
+exports.getAllOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find()
+    .populate("user", "name email")
+    .populate("items.product", "name price");
+
+  res.status(200).json({
+    results: orders.length,
+    data: orders,
+  });
+});
+
+exports.getOrdersStats = asyncHandler(async (req, res) => {
+  const stats = await Order.aggregate([
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+        totalOrders: { $sum: 1 },
+        totalRevenue: { $sum: "$totalAmount" },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  res.status(200).json({ data: stats });
+});
+
+exports.updatePaymentStatus = asyncHandler(async (req, res, next) => {
+  const { paymentStatus } = req.body;
+
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { paymentStatus },
+    { new: true, runValidators: true }
+  );
+
+  if (!order) {
+    return next(new ApiError("Order not found", 404));
+  }
+
+  res.status(200).json({ data: order });
+});
+
+exports.deliverOrder = asyncHandler(async (req, res, next) => {
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { 
+      status: "delivered",
+      isDelivered: true,
+     },
+    { new: true, runValidators: true }
+  );
+
+  if (!order) {
+    return next(new ApiError("Order not found", 404));
+  }
+
+  res.status(200).json({ data: order });
+});

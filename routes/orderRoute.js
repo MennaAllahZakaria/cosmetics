@@ -4,7 +4,11 @@ const {
     getMyOrders,
     getOrder,
     updateOrderStatus,
-    cancelOrder
+    cancelOrder,
+    getAllOrders,
+    getOrdersStats,
+    updatePaymentStatus,
+    deliverOrder
 } = require("../services/orderService");
 
 const {
@@ -20,11 +24,17 @@ const router = express.Router();
 router.use(protect);
 
 router.post("/", createOrderValidator, createOrder);
+router.get("/stats", allowedTo("admin"), getOrdersStats);
 
 router.get("/my-orders", getMyOrders);
 router.get("/:id", idValidator, getOrder);
 
 router.put("/:id/status", updateOrderValidator, allowedTo("admin"), updateOrderStatus);
 router.put("/:id/cancel", idValidator, cancelOrder);
+
+router.get("/", allowedTo("admin"), getAllOrders);
+router.patch("/:id/payment",allowedTo("admin"), idValidator, updatePaymentStatus);
+
+router.patch("/:id/deliver",allowedTo("admin"), idValidator, deliverOrder);
 
 module.exports = router;
