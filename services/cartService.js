@@ -88,6 +88,44 @@ exports.removeFromCart = asyncHandler(async (req, res, next) => {
   res.status(200).json({ data: cart });
 });
 
+exports.decreaseCartItem = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+  const { productId } = req.params;
+
+  const cart = await Cart.findOne({ user: userId });
+
+  if (!cart) {
+    return next(new ApiError("Cart not found", 404));
+  }
+
+  const itemIndex = cart.items.findIndex(
+    (item) => item.product.toString() === productId
+  );
+
+  if (itemIndex === -1) {
+    return next(new ApiError("Product not found in cart", 404));
+  }
+
+  // if quantity > 1 → decrease quantity, else remove item
+  if (cart.items[itemIndex].quantity > 1) {
+    cart.items[itemIndex].quantity -= 1;
+  } else {
+    cart.items.splice(itemIndex, 1);
+  }
+
+  cart.totalPrice = cart.items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+
+  await cart.save();
+
+  res.status(200).json({
+    message: "Cart updated successfully",
+    data: cart,
+  });
+});
+
 exports.getMyCart = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
 
