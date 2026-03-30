@@ -74,7 +74,7 @@ exports.updateOne = (Model) =>
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    await Model.findByIdAndUpdate(id, { isDeleted: true });
+    const document = await Model.findByIdAndUpdate(id, { isDeleted: true });
     if (!document) {
       return next(new ApiError(`No document for this id ${id}`, 404));
     }
