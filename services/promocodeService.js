@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 
 const ApiError = require("../utils/apiError");
-const PromoCode = require("../models/promoCodeModel");
+const PromoCode = require("../models/promocodesModel");
 
 exports.createPromoCode = asyncHandler(async (req, res) => {
   const {

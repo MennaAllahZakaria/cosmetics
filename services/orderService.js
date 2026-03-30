@@ -4,7 +4,7 @@ const ApiError = require("../utils/apiError");
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
-const PromoCode = require("../models/promoCodeModel");
+const PromoCode = require("../models/promocodesModel");
 
 exports.createOrder = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
