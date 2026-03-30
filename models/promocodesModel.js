@@ -31,8 +31,14 @@ const promoCodeSchema = new mongoose.Schema({
             ref: "User"
         }
     ],
-    minOrderAmount: Number,
-    isActive: Boolean,
+    minOrderAmount: {
+        type: Number,
+        default: 400,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
 }, {
     timestamps: true,
 });

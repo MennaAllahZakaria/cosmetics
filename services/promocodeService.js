@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 
 const ApiError = require("../utils/apiError");
 const PromoCode = require("../models/promocodesModel");
+const HandlerFactory = require("./handlerFactory");
 
 exports.createPromoCode = asyncHandler(async (req, res) => {
   const {
@@ -16,6 +17,7 @@ exports.createPromoCode = asyncHandler(async (req, res) => {
     discountPercentage,
     expirationDate,
     usageLimit,
+    createdBy: req.user._id,
   });
 
   res.status(201).json({ data: promo });
@@ -51,12 +53,9 @@ exports.applyPromoCode = asyncHandler(async (req, res, next) => {
   });
 });
 
-exports.getAllPromoCodes = asyncHandler(async (req, res) => {
-  const promos = await PromoCode.find();
+exports.getAllPromoCodes = HandlerFactory.getAll(PromoCode);
 
-  res.status(200).json({
-    results: promos.length,
-    data: promos,
-  });
-});
+exports.getPromoCode = HandlerFactory.getOne(PromoCode);
+
+exports.deletePromoCode = HandlerFactory.deleteOne(PromoCode);
 

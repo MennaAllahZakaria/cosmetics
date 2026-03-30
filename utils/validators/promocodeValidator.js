@@ -27,3 +27,12 @@ exports.createPromoCodeValidator = [
   validatorMiddleware,
 ];
 
+
+exports.idValidator = [
+    check("id")
+            .notEmpty()
+            .withMessage("id required")   
+            .isMongoId()
+            .withMessage("Invalid id format"),
+      validatorMiddleware,    
+];
