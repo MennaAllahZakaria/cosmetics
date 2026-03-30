@@ -29,6 +29,15 @@ exports.createReview = asyncHandler(async (req, res, next) => {
         comment,
     });
 
+    // 4. update product rating
+    const reviews = await Review.find({ product: productId });
+    const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    product.ratingsAverage = avgRating;
+    product.ratingsQuantity = reviews.length;
+    await product.save();
+
+
+
     res.status(201).json({
         status: "success",
         data: review,
