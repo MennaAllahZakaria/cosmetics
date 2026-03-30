@@ -14,6 +14,10 @@ const categorySchema = new mongoose.Schema({
     image: {
         type: String, // URL of the category image
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

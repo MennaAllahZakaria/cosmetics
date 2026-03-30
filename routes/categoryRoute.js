@@ -19,16 +19,16 @@ const { protect, allowedTo } = require("../middleware/authMiddleware");
 const {uploadImages, attachUploadedLinks} = require("../middleware/uploadImageMiddleware");
 const router = express.Router();
 
-router.use(protect , allowedTo("admin"));
+router.use(protect );
 
-router.post("/", uploadImages , attachUploadedLinks ,createCategoryValidator , createCategory);
+router.post("/",allowedTo("admin") , uploadImages , attachUploadedLinks ,createCategoryValidator , createCategory);
 
 router.get ("/", getCategories);
 
 router.get ("/:id" ,idValidator, getCategory);
 
-router.put("/:id" ,updateCategoryValidator, updateCategory);
+router.put("/:id" ,allowedTo("admin"), uploadImages , attachUploadedLinks , updateCategoryValidator, updateCategory);
 
-router.delete("/:id" ,idValidator, deleteCategory);
+router.delete("/:id" ,allowedTo("admin"), idValidator, deleteCategory);
 
 module.exports = router;
