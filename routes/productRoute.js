@@ -20,13 +20,12 @@ const { protect, allowedTo } = require("../middleware/authMiddleware");
 const {uploadImages, attachUploadedLinks} = require("../middleware/uploadImageMiddleware");
 const router = express.Router();
 
+router.get ("/", getProducts);
+router.get ("/:id" ,idValidator, getProduct);
+
 router.use(protect );
 
 router.post("/", allowedTo("admin"), uploadImages , attachUploadedLinks ,createProductValidator, createProduct);
-
-router.get ("/", getProducts);
-
-router.get ("/:id" ,idValidator, getProduct);
 
 router.put("/:id" , allowedTo("admin") , uploadImages , attachUploadedLinks,updateProductValidator , updateProduct);
 
