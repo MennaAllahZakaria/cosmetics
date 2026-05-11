@@ -1,6 +1,7 @@
 const HandlerFactory = require("./handlerFactory");
 const asyncHandler = require("express-async-handler");
 const Product = require("../models/productModel");
+const Order = require("../models/orderModel");
 
 exports.createProduct = asyncHandler(async (req, res) => {
     if (req.uploadedFiles?.images) {
