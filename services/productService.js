@@ -34,126 +34,78 @@ exports.getProducts = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const matchStage = {
+    // products
+    const products = await Product.find({
         isDeleted: { $ne: true },
-    };
+    })
+        .populate("category", "name")
+        .sort("-createdAt")
+        .skip(skip)
+        .limit(limit);
 
-    // search by product name
-    if (req.query.name) {
-        matchStage.name = {
-            $regex: req.query.name,
-            $options: "i",
+    // calculate sold quantities
+    const soldProducts = await Order.aggregate([
+        {
+            $match: {
+                status: {
+                    $in: ["confirmed", "shipped", "delivered"],
+                },
+            },
+        },
+
+        {
+            $unwind: "$items",
+        },
+
+        {
+            $group: {
+                _id: "$items.product",
+                totalSold: {
+                    $sum: "$items.quantity",
+                },
+            },
+        },
+    ]);
+
+    // convert to map for fast lookup
+    const soldMap = {};
+
+    soldProducts.forEach((item) => {
+        soldMap[item._id.toString()] = item.totalSold;
+    });
+
+    const formattedProducts = products.map((product) => {
+        const createdAt = new Date(product.createdAt);
+        const now = new Date();
+
+        const diffInDays =
+            (now - createdAt) / (1000 * 60 * 60 * 24);
+
+        const soldCount =
+            soldMap[product._id.toString()] || 0;
+
+        return {
+            ...product.toObject(),
+
+            soldCount,
+
+            badges: {
+                bestSeller: soldCount >= 50,
+                recentlyAdded: diffInDays <= 7,
+            },
         };
-    }
+    });
 
-    // filter by skin type
-    if (req.query.skinType) {
-        matchStage.skinType = req.query.skinType;
-    }
-
-    // filter by price
-    if (req.query.minPrice || req.query.maxPrice) {
-        matchStage.price = {};
-
-        if (req.query.minPrice) {
-            matchStage.price.$gte = Number(req.query.minPrice);
-        }
-
-        if (req.query.maxPrice) {
-            matchStage.price.$lte = Number(req.query.maxPrice);
-        }
-    }
-
-    const products = await Product.aggregate([
-        {
-            $match: matchStage,
-        },
-
-        // join categories
-        {
-            $lookup: {
-                from: "categories",
-                localField: "category",
-                foreignField: "_id",
-                as: "category",
-            },
-        },
-
-        {
-            $unwind: "$category",
-        },
-
-        // search by category name
-        ...(req.query.category
-            ? [
-                  {
-                      $match: {
-                          "category.name": {
-                              $regex: req.query.category,
-                              $options: "i",
-                          },
-                      },
-                  },
-              ]
-            : []),
-
-        {
-            $sort: {
-                createdAt: -1,
-            },
-        },
-
-        {
-            $skip: skip,
-        },
-
-        {
-            $limit: limit,
-        },
-    ]);
-
-    const totalProducts = await Product.aggregate([
-        {
-            $match: matchStage,
-        },
-
-        {
-            $lookup: {
-                from: "categories",
-                localField: "category",
-                foreignField: "_id",
-                as: "category",
-            },
-        },
-
-        {
-            $unwind: "$category",
-        },
-
-        ...(req.query.category
-            ? [
-                  {
-                      $match: {
-                          "category.name": {
-                              $regex: req.query.category,
-                              $options: "i",
-                          },
-                      },
-                  },
-              ]
-            : []),
-
-        {
-            $count: "total",
-        },
-    ]);
+    const totalProducts = await Product.countDocuments({
+        isDeleted: { $ne: true },
+    });
 
     res.status(200).json({
         currentPage: page,
-        totalPages: Math.ceil((totalProducts[0]?.total || 0) / limit),
-        totalProducts: totalProducts[0]?.total || 0,
-        results: products.length,
-        data: products,
+        totalPages: Math.ceil(totalProducts / limit),
+        totalProducts,
+        results: formattedProducts.length,
+        data: formattedProducts,
     });
 });
 
