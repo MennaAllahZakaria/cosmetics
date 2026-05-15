@@ -5,6 +5,7 @@ const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
 const PromoCode = require("../models/promocodesModel");
+const sendEmail = require("../utils/sendEmail");
 
 exports.createOrder = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
@@ -94,6 +95,13 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
   cart.totalPrice = 0;
   await cart.save();
 
+  const message = `Your order ${order._id} has been placed successfully! Total: $${finalAmount.toFixed(2)} Thank you for shopping with us!`;
+  await sendEmail({
+    to: req.user.email,
+    subject: "Order Confirmation",
+    text: message,
+  });
+
   res.status(201).json({ data: order });
 });
 
@@ -132,6 +140,31 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
   if (!order) {
     return next(new ApiError("Order not found", 404));
   }
+  if (status === "delivered") {
+    order.isDelivered = true;
+    await order.save();
+    const message = `Your order ${order._id} has been delivered! Thank you for shopping with us!`;
+    await sendEmail({
+      to: req.user.email,
+      subject: "Order Delivered",
+      text: message,
+    });
+  }else if (status === "shipped"){
+    const message = `Your order ${order._id} has been shipped! It will be delivered soon. Thank you for shopping with us!`;
+    await sendEmail({
+      to: req.user.email,
+      subject: "Order Shipped",
+      text: message,
+    });
+  }else if (status === "cancelled"){
+    const message = `Your order ${order._id} has been cancelled! If you have any questions, please contact our support. Thank you for shopping with us!`;
+    await sendEmail({
+      to: req.user.email,
+      subject: "Order Cancelled",
+      text: message,
+    });
+  }
+
 
   res.status(200).json({ data: order });
 });
@@ -214,6 +247,12 @@ exports.deliverOrder = asyncHandler(async (req, res, next) => {
   if (!order) {
     return next(new ApiError("Order not found", 404));
   }
+  const message = `Your order ${order._id} has been delivered! Thank you for shopping with us!`;
+    await sendEmail({
+      to: req.user.email,
+      subject: "Order Delivered",
+      text: message,
+    });
 
   res.status(200).json({ data: order });
 });
