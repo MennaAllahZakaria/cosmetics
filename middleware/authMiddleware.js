@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const User = require("../models/userModel");
+const { v4: uuidv4 } = require("uuid");
 
 // ================== PROTECT ==================
 exports.protect = asyncHandler(async (req, res, next) => {
@@ -39,4 +40,39 @@ exports.allowedTo = (...roles) => {
         }
         next();
     };
+};
+
+exports.identifyUser = async (req, res, next) => {
+    const token = req.headers.authorization;
+
+    // Logged in user
+    if (token && token.startsWith("Bearer")) {
+        try {
+            const jwtToken = token.split(" ")[1];
+
+            const decoded = jwt.verify(
+                jwtToken,
+                process.env.JWT_SECRET
+            );
+
+            req.user = decoded;
+
+            return next();
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // Guest user
+    let guestId = req.headers["guest-id"];
+
+    if (!guestId) {
+        guestId = uuidv4();
+    }
+
+    req.guestId = guestId;
+
+    res.setHeader("guest-id", guestId);
+
+    next();
 };

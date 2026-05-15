@@ -6,7 +6,10 @@ const Product = require("../models/productModel");
 
 
 exports.addToCart = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  const query = req.user
+    ? { user: req.user._id }
+    : { guestId: req.guestId };
+    
   const { productId, quantity = 1 } = req.body;
 
   // 1. check product exists
@@ -21,11 +24,11 @@ exports.addToCart = asyncHandler(async (req, res, next) => {
   }
 
   // 3. get user cart
-  let cart = await Cart.findOne({ user: userId });
+  let cart = await Cart.findOne(query);
 
   if (!cart) {
     cart = await Cart.create({
-      user: userId,
+      ...query,
       items: [],
     });
   }
@@ -64,10 +67,12 @@ exports.addToCart = asyncHandler(async (req, res, next) => {
 });
 
 exports.removeFromCart = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  const query = req.user
+    ? { user: req.user._id }
+    : { guestId: req.guestId };
   const { productId } = req.params;
 
-  const cart = await Cart.findOne({ user: userId });
+  const cart = await Cart.findOne(query);
 
   if (!cart) {
     return next(new ApiError("Cart not found", 404));
@@ -89,10 +94,12 @@ exports.removeFromCart = asyncHandler(async (req, res, next) => {
 });
 
 exports.decreaseCartItem = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  const query = req.user
+    ? { user: req.user._id }
+    : { guestId: req.guestId };
   const { productId } = req.params;
 
-  const cart = await Cart.findOne({ user: userId });
+  const cart = await Cart.findOne(query);
 
   if (!cart) {
     return next(new ApiError("Cart not found", 404));
@@ -127,9 +134,11 @@ exports.decreaseCartItem = asyncHandler(async (req, res, next) => {
 });
 
 exports.getMyCart = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  const query = req.user
+    ? { user: req.user._id }
+    : { guestId: req.guestId };
 
-  const cart = await Cart.findOne({ user: userId }).populate({
+  const cart = await Cart.findOne(query).populate({
     path: "items.product",
     select: "name price images stock",
   });
@@ -137,9 +146,13 @@ exports.getMyCart = asyncHandler(async (req, res, next) => {
   if (!cart) {
     return res.status(200).json({ data: { items: [], totalPrice: 0 } });
   }
+  const totalItems = cart.items.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
 
   res.status(200).json({
-    itemsCount: cart.items.length,
+    itemsCount: totalItems,
     data: cart,
   });
 });

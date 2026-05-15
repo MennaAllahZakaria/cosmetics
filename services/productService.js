@@ -25,8 +25,56 @@ exports.getProduct = asyncHandler(async (req, res) => {
         });
     }
 
+    // calculate sold count from orders
+    const soldData = await Order.aggregate([
+        {
+            $match: {
+                status: {
+                    $in: ["confirmed", "shipped", "delivered"],
+                },
+            },
+        },
+
+        {
+            $unwind: "$items",
+        },
+
+        {
+            $match: {
+                "items.product": product._id,
+            },
+        },
+
+        {
+            $group: {
+                _id: "$items.product",
+                totalSold: {
+                    $sum: "$items.quantity",
+                },
+            },
+        },
+    ]);
+
+    const soldCount = soldData[0]?.totalSold || 0;
+
+    // recently added logic
+    const createdAt = new Date(product.createdAt);
+    const now = new Date();
+
+    const diffInDays =
+        (now - createdAt) / (1000 * 60 * 60 * 24);
+
     res.status(200).json({
-        data: product,
+        data: {
+            ...product.toObject(),
+
+            soldCount,
+
+            badges: {
+                bestSeller: soldCount >= 10,
+                recentlyAdded: diffInDays <= 7,
+            },
+        },
     });
 });
 
@@ -91,7 +139,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
             soldCount,
 
             badges: {
-                bestSeller: soldCount >= 50,
+                bestSeller: soldCount >= 10,
                 recentlyAdded: diffInDays <= 7,
             },
         };

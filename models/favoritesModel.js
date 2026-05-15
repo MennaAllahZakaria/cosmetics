@@ -1,20 +1,48 @@
 const mongoose = require("mongoose");
 
-const favoriteSchema = new mongoose.Schema({
+const favoriteSchema = new mongoose.Schema(
+  {
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    product: {
+
+    guestId: {
+      type: String,
+    },
+
+    products: [
+      {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
-        required: true,
-    },
-}, {
+      },
+    ],
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
-favoriteSchema.index({ user: 1, product: 1 }, { unique: true });
+// one favorites document per user
+favoriteSchema.index(
+  { user: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      user: { $exists: true },
+    },
+  }
+);
+
+// one favorites document per guest
+favoriteSchema.index(
+  { guestId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      guestId: { $exists: true },
+    },
+  }
+);
 
 module.exports = mongoose.model("Favorite", favoriteSchema);

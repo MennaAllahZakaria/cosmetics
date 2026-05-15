@@ -5,70 +5,134 @@ const ApiError = require("../utils/apiError");
 const Favorite = require("../models/favoritesModel");
 
 exports.toggleFavorite = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const { productId } = req.params;
+    const query = req.user
+      ? { user: req.user._id }
+      : { guestId: req.guestId };
 
-  const existing = await Favorite.findOne({ user: userId, product: productId });
+    const { productId } = req.params;
 
-  if (existing) {
-    await existing.deleteOne();
-    return res.json({ status: "removed" });
-  }
+    let favorites = await Favorite.findOne(query);
 
-  await Favorite.create({ user: userId, product: productId });
-  
-  res.json({ status: "added" });
-});
+    // create favorites doc if not exists
+    if (!favorites) {
+      favorites = await Favorite.create({
+        ...query,
+        products: [],
+      });
+    }
+
+    const exists = favorites.products.some(
+        (id) => id.toString() === productId
+      );
+
+    if (exists) { 
+      favorites.products = favorites.products.filter(
+          (id) =>
+            id.toString() !== productId
+        );
+
+      await favorites.save();
+
+      return res.json({
+        status: "removed",
+      });
+    }
+
+    favorites.products.push(productId);
+
+    await favorites.save();
+
+    res.json({
+      status: "added",
+    });
+  });
 
 exports.getMyFavorites = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
+    const query = req.user
+      ? { user: req.user._id }
+      : { guestId: req.guestId };
 
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 10;
-  const skip = (page - 1) * limit;
+    const page = parseInt(req.query.page) || 1;
 
-  const favorites = await Favorite.aggregate([
-    { $match: { user: new mongoose.Types.ObjectId(userId) } },
+    const limit = parseInt(req.query.limit) || 10;
 
-    {
-      $lookup: {
-        from: "products",
-        localField: "product",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    { $unwind: "$product" },
+    const skip = (page - 1) * limit;
 
-    // exclude deleted products
-    { $match: { "product.isDeleted": { $ne: true } } },
+    const favorites =
+      await Favorite.aggregate([
+        {
+          $match: query,
+        },
 
-    {
-      $lookup: {
-        from: "categories",
-        localField: "product.category",
-        foreignField: "_id",
-        as: "product.category",
-      },
-    },
+        {
+          $unwind: "$products",
+        },
 
-    // convert category array → object
-    {
-      $unwind: {
-        path: "$product.category",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
+        {
+          $lookup: {
+            from: "products",
+            localField: "products",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
 
-    { $skip: skip },
-    { $limit: limit },
-  ]);
+        {
+          $unwind: "$product",
+        },
 
-  res.status(200).json({
-    page,
-    limit,
-    hasNext: favorites.length === limit,
-    results: favorites.length,
-    data: favorites,
-  });
-});
+        // exclude deleted products
+        {
+          $match: {
+            "product.isDeleted": {
+              $ne: true,
+            },
+          },
+        },
+
+        {
+          $lookup: {
+            from: "categories",
+            localField:
+              "product.category",
+            foreignField: "_id",
+            as: "product.category",
+          },
+        },
+
+        {
+          $unwind: {
+            path: "$product.category",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        {
+          $replaceRoot: {
+            newRoot: "$product",
+          },
+        },
+
+        {
+          $skip: skip,
+        },
+
+        {
+          $limit: limit + 1,
+        },
+      ]);
+
+    const hasNext =
+      favorites.length > limit;
+
+    if (hasNext) favorites.pop();
+
+    res.status(200).json({
+      page,
+      limit,
+      hasNext,
+      results: favorites.length,
+      data: favorites,
+    });
+  }
+);

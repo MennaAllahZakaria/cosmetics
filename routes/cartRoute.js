@@ -12,12 +12,12 @@ const {
     removeFromCartValidator
 } = require("../utils/validators/cartValidator");
 
-const { protect, allowedTo } = require("../middleware/authMiddleware");
+const { protect, allowedTo ,identifyUser} = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.post("/add", protect, allowedTo("user"), addToCartValidator, addToCart);
-router.delete("/remove/:productId", protect, allowedTo("user"), removeFromCartValidator, removeFromCart);
-router.patch("/decrease/:productId", protect, allowedTo("user"), removeFromCartValidator, decreaseCartItem);
-router.get("/my-cart", protect, allowedTo("user"), getMyCart);
+router.post("/add", identifyUser,  identifyUser, addToCart);
+router.delete("/remove/:productId", identifyUser,  identifyUser, removeFromCart);
+router.patch("/decrease/:productId", identifyUser,  identifyUser, decreaseCartItem);
+router.get("/my-cart", identifyUser,  getMyCart);
 
 module.exports = router;

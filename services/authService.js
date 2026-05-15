@@ -7,6 +7,7 @@ const sendEmail = require("../utils/sendEmail");
 const ApiError = require("../utils/apiError");
 const createToken = require("../utils/createToken"); // JWT
 const { encryptToken } = require("../utils/fcmToken");
+const { mergeGuestData } = require("../utils/mergeGuestData");
 
 // ==================== Helpers ====================
 
@@ -229,6 +230,13 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 
   const token = createToken(user._id);
+
+  const guestId = req.headers["guest-id"];
+
+  await mergeGuestData({
+    userId: user._id,
+    guestId,
+  });
 
   res.status(200).json({
     status: "success",
