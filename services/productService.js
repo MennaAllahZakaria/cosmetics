@@ -71,7 +71,7 @@ exports.getProduct = asyncHandler(async (req, res) => {
             soldCount,
 
             badges: {
-                bestSeller: soldCount >= 10,
+                bestSeller: soldCount >= 2,
                 recentlyAdded: diffInDays <= 7,
             },
         },
@@ -139,7 +139,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
             soldCount,
 
             badges: {
-                bestSeller: soldCount >= 10,
+                bestSeller: soldCount >= 2,
                 recentlyAdded: diffInDays <= 7,
             },
         };
